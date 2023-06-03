@@ -1,0 +1,21 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: near
+    name: Contract
+    network: near-testnet
+    source:
+      account: "nearkarts1.benrazor.testnet" 
+      startBlock: 83469423
+    mapping:
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - NearKart
+        - ScoreDaily
+        - ScoreMonthly
+        - NearKartsSimpleBattle
+      receiptHandlers:
+        - handler: handleReceipt
+      file: ./src/mapping.ts

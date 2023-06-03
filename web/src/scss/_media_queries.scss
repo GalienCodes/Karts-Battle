@@ -1,0 +1,53 @@
+@media (max-width: 992px) {
+    .tiny-hide {
+        display: none;
+    }
+    .br-page {
+        margin: auto;
+        width: 98%;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 0.7em;
+    }
+    .br-header-controls-panel {
+        flex: 0 1;
+    }
+    .br-header {
+        flex-direction: column;
+        font-size: 0.9em;
+    }
+    .br-header-logo-panel {
+        justify-content: center;
+    }
+    .br-header-controls-panel {
+        justify-content: center;
+    }
+    .br-header-controls {
+        width: initial;
+    }
+    .br-highscore-panel {
+        min-width: initial;
+    }
+    .br-modal-panel {
+        min-width: initial;
+    }
+    .br-battle-viewer-panel {
+        width: 120px;
+    }
+    .br-battle-viewer-image {
+        width: 100px;
+        height: 100px;
+    }
+    .br-power-bar-panel {
+        width: 100px;
+    }
+    .br-battle-visuals {
+        display: none;
+    }
+}
+
+@media (max-width: 576px) {
+}

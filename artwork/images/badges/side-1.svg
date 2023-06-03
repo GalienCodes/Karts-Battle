@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="325"
+   height="74"
+   viewBox="0 0 85.989579 19.579168"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.1 (3bf5ae0, 2021-09-20)"
+   inkscape:export-filename="/media/chrisb/crypto1/eth/near-karts/artwork/images/badges/side/set-1-side-1.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   sodipodi:docname="side-1.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="px"
+     showgrid="true"
+     units="px"
+     inkscape:zoom="1.06"
+     inkscape:cx="131.13208"
+     inkscape:cy="77.358491"
+     inkscape:window-width="1366"
+     inkscape:window-height="713"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid824"
+       spacingx="1.3229167"
+       spacingy="1.3229167"
+       empspacing="5" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#55be44;fill-opacity:1;stroke:none;stroke-width:0.264583;stop-color:#000000"
+       id="rect913"
+       width="13.229167"
+       height="13.229167"
+       x="0"
+       y="0" />
+    <rect
+       style="fill:#4446be;fill-opacity:1;stroke:none;stroke-width:0.264583;stop-color:#000000"
+       id="rect959"
+       width="13.229167"
+       height="13.229167"
+       x="72.760422"
+       y="6.6145835" />
+    <path
+       style="fill:#4446be;fill-opacity:1;stroke:none;stroke-width:0.264583;stop-color:#000000"
+       d="M 13.229167,19.843751 26.458334,0 33.072918,6.6145835"
+       id="path1112" />
+    <path
+       style="fill:#4446be;fill-opacity:1;stroke:none;stroke-width:0.264583;stop-color:#000000"
+       d="M 26.458334,19.843751 39.687501,0 46.302084,6.6145835 Z"
+       id="path1114" />
+    <path
+       style="fill:#4446be;fill-opacity:1;stroke:none;stroke-width:0.264583;stop-color:#000000"
+       d="M 39.687501,19.843751 52.916668,0 59.531252,6.6145835 39.687501,19.843751"
+       id="path1116" />
+    <path
+       style="fill:#4446be;fill-opacity:1;stroke:none;stroke-width:0.264583;stop-color:#000000"
+       d="M 52.916668,19.843751 66.145835,0 72.760418,6.6145835 Z"
+       id="path1118" />
+  </g>
+</svg>

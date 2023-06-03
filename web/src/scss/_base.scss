@@ -1,0 +1,97 @@
+@font-face {
+    font-family: "NearKartsRegular";
+    src: url('../fonts/Exo-Medium.ttf'); 
+}
+
+@font-face {
+    font-family: "NearKartsThin";
+    src: url('../fonts/Exo-Regular.ttf'); 
+}
+
+@font-face {
+    font-family: "NearKartsFancy";
+    src: url('../fonts/ShurikenStd-Boy.otf'); 
+}
+
+body {
+    font-family: NearKartsRegular, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif; 
+    background-image: url(../images/gfx/near-blockchain-transmission-3.jpg);
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+}
+
+div, input, select, button {
+    box-sizing: border-box;
+}
+
+h1,h2,h3,h4,h5,h6 {
+    color: $color-1-base;
+    margin: 0 0 0.25em 0;
+}
+
+p {
+    margin: 0 0 0.25em 0;
+}
+
+button, select, input {
+    font-family: NearKartsRegular, sans-serif; 
+}
+
+input[type=text], textarea {
+    padding: 0.25em;
+    border-radius: 0.5em;
+    border: 2px solid grey;
+    width: 100%;
+}
+
+input[type=checkbox] {
+    width: 1.28em;
+    height: 1.28em;
+}
+
+textarea:focus, input:focus, input[type]:focus, .uneditable-input:focus {  
+    font-family: NearKartsRegular, sans-serif; 
+    outline: 1px solid $color-1-alt1;
+}
+
+canvas {
+    border-radius: 1em;
+}
+
+.br-photo-booth canvas {
+    border-radius: 5em;
+}
+
+.flexcroll{
+    scrollbar-face-color: #000000;
+    scrollbar-shadow-color: #FFFFFF;
+    scrollbar-highlight-color: #FFFFFF;
+    scrollbar-3dlight-color: #FFFFFF;
+    scrollbar-darkshadow-color: #FFFFFF;
+    scrollbar-track-color: #FFFFFF;
+    scrollbar-arrow-color: #FFFFFF;
+}
+
+/* Let's get this party started */
+.flexcroll::-webkit-scrollbar {
+    width: 12px;
+}
+
+/* Track */
+.flexcroll::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background-color: hsl(342deg, 0%, 10%);
+}
+
+/* Handle */
+.flexcroll::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.8); 
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+}

@@ -1,0 +1,142 @@
+@keyframes loading-fade-in {
+    0% { opacity: 0; }
+    10% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes loading-fade-out {
+    0% { opacity: 1; }
+    20% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes loading-fade-in-instant {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes loading-fade-out-instant {
+    0% { opacity: 0.5; }
+    100% { opacity: 0; }
+}
+
+@keyframes loading-fade-in-delay-50 {
+    0% { opacity: 0; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes fade-in-with-grow {
+    0% { opacity: 0; transform: scaleY(0)}
+    100% { opacity: 1; transform: scaleY(1)}
+}
+
+@keyframes spin {
+    from {transform:rotate(0deg);}
+    to {transform:rotate(359deg);}
+}
+
+.spin {
+    animation: spin 1.5s;
+    animation-iteration-count: infinite;
+    animation-timing-function: steps(40);
+}
+
+.loading-fade-in {
+    animation: loading-fade-in 7s;
+}
+
+.loading-fade-in-fast {
+    animation: loading-fade-in-instant 3s;
+}
+
+.loading-fade-out-slow {
+    animation: loading-fade-out 12s;
+}
+
+.loading-fade-out {
+    animation: loading-fade-out 5s;
+}
+
+.loading-fade-out-fast {
+    animation: loading-fade-out-instant 3s;
+}
+
+.loading-fade-out-instant {
+    animation: loading-fade-out-instant 0.5s;
+}
+
+.loading-fade-in-delay-50-fast {
+    animation: loading-fade-in-delay-50 3s;
+}
+
+.fade-in-with-grow-fast {
+    transform-origin: bottom center;
+    animation: fade-in-with-grow 1s;
+}
+
+@keyframes loading-lower-z {
+    0% { z-index: 100; }
+    100% { z-index: 0; }
+}
+
+.loading-lower-z-slow {
+    animation: loading-lower-z 12s;
+    animation-timing-function: step-end;
+}
+
+@keyframes shake {
+    0% { 
+        transform: scale(1) rotate(0);
+    }
+    50% {
+        transform: scale(0.9) rotate(0.4deg);
+    }
+    100% {
+        transform: scale(1) rotate(0);
+    }
+}
+
+.br-anim-shake {
+    animation: shake 1s;
+    animation-iteration-count: infinite;    
+}
+
+.br-anim-shake-short {
+    animation: shake 0.4s;
+    animation-iteration-count: 8;
+}
+
+@keyframes text-pulse {
+    0% { 
+        text-shadow: 0 0 0;
+    }
+    50% {
+        text-shadow: 0 0 20px;
+    }
+    100% {
+        text-shadow: 0 0 0;
+    }
+}
+
+.br-anim-text-pulse {
+    animation: text-pulse 1s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes box-hit {
+    from { 
+        box-shadow: 0 0 20px hsl(0deg 100% 50%); 
+        background-color: hsla(0deg, 100%, 20%, 1);
+        border: 2px solid hsla(0deg, 100%, 30%, 1);
+    }
+    to { 
+        box-shadow: 0 0 0px hsl(0deg 0% 100%);
+        background-color: initial;
+        border: 2px solid hsla(0deg, 100%, 30%, 0);
+    }
+}
+
+.box-hit {
+    animation: box-hit 3s;
+}
