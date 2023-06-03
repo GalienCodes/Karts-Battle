@@ -28,7 +28,7 @@ non_fungible_token_core, non_fungible_token_approval and impl_non_fungible_token
 
 **nft_mint** is modified to allow minting only when with verified nft data is provided.
 
-[NEAR Kart NEP-171 Implementation](https://github.com/Muhindo-Galien/Karts-Battle/blob/main/contracts/near/nft/src/lib.rs)
+[NEAR Kart NEP-171 Implementation](https://github.com/Muhindo-Galien/Karts-Battle/blob/master/contracts/near/nft/src/lib.rs)
 
 #### The Graph Integration
 
@@ -44,8 +44,8 @@ The NEAR Karts Subgraph also provides:
 
 ## Important Files
 
-[Kart NFT Contract on NEAR](https://github.com/Muhindo-Galien/Karts-Battle/blob/main/contracts/near/nft/src/lib.rs)
+[Kart NFT Contract on NEAR](https://github.com/Muhindo-Galien/Karts-Battle/blob/master/contracts/near/nft/src/lib.rs)
 
-[Front end code](https://github.com/Muhindo-Galien/Karts-Battle/tree/main/web/src)  
-[App / Wallet / Contract front end ReactJS](https://github.com/Muhindo-Galien/Karts-Battle/blob/main/web/src/App.js)  
-[NEAR Karts front end ReactJS](https://github.com/Muhindo-Galien/Karts-Battle/blob/main/web/src/js/components/NearKarts.js)  
+[Front end code](https://github.com/Muhindo-Galien/Karts-Battle/tree/master/web/src)  
+[App / Wallet / Contract front end ReactJS](https://github.com/Muhindo-Galien/Karts-Battle/blob/master/web/src/App.js)  
+[NEAR Karts front end ReactJS](https://github.com/Muhindo-Galien/Karts-Battle/blob/master/web/src/js/components/NearKarts.js)  
