@@ -6,7 +6,7 @@ dataSources:
     name: Contract
     network: near-testnet
     source:
-      account: "nearkarts1.benrazor.testnet" 
+      account: "nearkarts1.muhindogalien.testnet" 
       startBlock: 83469423
     mapping:
       apiVersion: 0.0.5

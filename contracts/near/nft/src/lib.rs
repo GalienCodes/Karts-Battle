@@ -15,23 +15,23 @@ NOTES:
   - To prevent the deployed contract from being modified or deleted, it should not have any access
     keys on its account.
 */
-use near_contract_standards::non_fungible_token::metadata::{
-    NFTContractMetadata, NonFungibleTokenMetadataProvider, TokenMetadata, NFT_METADATA_SPEC
-};
-use near_contract_standards::non_fungible_token::{Token, TokenId};
-use near_contract_standards::non_fungible_token::NonFungibleToken;
+use ed25519_dalek::{PublicKey, Signature, Verifier};
+use hex;
 use near_contract_standards::non_fungible_token::core::StorageKey as NFTStorageKey;
+use near_contract_standards::non_fungible_token::metadata::{
+    NFTContractMetadata, NonFungibleTokenMetadataProvider, TokenMetadata, NFT_METADATA_SPEC,
+};
+use near_contract_standards::non_fungible_token::NonFungibleToken;
+use near_contract_standards::non_fungible_token::{Token, TokenId};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::{ LazyOption, UnorderedSet, Vector, LookupMap };
+use near_sdk::collections::{LazyOption, LookupMap, UnorderedSet, Vector};
 use near_sdk::json_types::ValidAccountId;
 use near_sdk::{
-    env, near_bindgen, log, AccountId, BorshStorageKey, PanicOnDefault, Promise, PromiseOrValue
+    env, log, near_bindgen, AccountId, BorshStorageKey, PanicOnDefault, Promise, PromiseOrValue,
 };
-use serde::{Serialize, Deserialize};
 use rmp_serde;
-use hex; 
+use serde::{Deserialize, Serialize};
 use std::fmt;
-use ed25519_dalek::{ Signature, Verifier, PublicKey};
 
 /// This is the name of the NFT standard we're using
 pub const NFT_STANDARD_NAME: &str = "nep171";
@@ -130,7 +130,7 @@ pub struct Contract {
     prev_block_index: near_sdk::BlockHeight,
     random_buffer: Vector<u8>,
     random_index: u8,
-    last_battle: LookupMap<AccountId, SimpleBattle>
+    last_battle: LookupMap<AccountId, SimpleBattle>,
 }
 
 // Kart configuration is serialized and extra field of the NFT metadata
@@ -156,7 +156,7 @@ pub struct NearKart {
     decal3: String,
     extra1: String,
     extra2: String,
-    extra3: String
+    extra3: String,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize, BorshSerialize, BorshDeserialize, Debug)]
@@ -166,13 +166,13 @@ pub struct SimpleBattle {
     winner: u8,
     battle: u32,
     prize: String,
-    extra: String
+    extra: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BattleLog {
     pub event: String,
-    pub data: SimpleBattle
+    pub data: SimpleBattle,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -180,13 +180,13 @@ pub struct KartMeta {
     token_id: String,
     name: String,
     media: String,
-    reference: String
+    reference: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct KartMetaLog {
     pub event: String,
-    pub data: KartMeta
+    pub data: KartMeta,
 }
 
 impl NearKart {
@@ -195,18 +195,18 @@ impl NearKart {
         kart.level = 1;
         return kart;
     }
-  
+
     pub fn from_data(data: &String) -> Self {
         let mut s = Self::default();
         s.deserialize(data);
         s
     }
 
-    pub fn serialize(&self) -> String{
+    pub fn serialize(&self) -> String {
         let sj_message_pack = rmp_serde::encode::to_vec(self).unwrap();
         let sj_hex = hex::encode(&sj_message_pack);
         return sj_hex;
-    } 
+    }
 
     pub fn deserialize(&mut self, data: &String) -> &Self {
         if String::len(data) > 16 {
@@ -216,7 +216,7 @@ impl NearKart {
         }
         self
     }
-  }
+}
 
 const DATA_IMAGE_SVG_NEAR_ICON: &str = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 288 288'%3E%3Cg id='l' data-name='l'%3E%3Cpath d='M187.58,79.81l-30.1,44.69a3.2,3.2,0,0,0,4.75,4.2L191.86,103a1.2,1.2,0,0,1,2,.91v80.46a1.2,1.2,0,0,1-2.12.77L102.18,77.93A15.35,15.35,0,0,0,90.47,72.5H87.34A15.34,15.34,0,0,0,72,87.84V201.16A15.34,15.34,0,0,0,87.34,216.5h0a15.35,15.35,0,0,0,13.08-7.31l30.1-44.69a3.2,3.2,0,0,0-4.75-4.2L96.14,186a1.2,1.2,0,0,1-2-.91V104.61a1.2,1.2,0,0,1,2.12-.77l89.55,107.23a15.35,15.35,0,0,0,11.71,5.43h3.13A15.34,15.34,0,0,0,216,201.16V87.84A15.34,15.34,0,0,0,200.66,72.5h0A15.35,15.35,0,0,0,187.58,79.81Z'/%3E%3C/g%3E%3C/svg%3E";
 
@@ -229,7 +229,7 @@ enum StorageKey {
     Approval,
     SignerKey,
     RandomBufferKey,
-    LastBattleKey
+    LastBattleKey,
 }
 
 #[near_bindgen]
@@ -268,8 +268,8 @@ impl Contract {
             signer_pub_keys: UnorderedSet::new(StorageKey::SignerKey),
             prev_block_index: 0,
             random_buffer: Vector::new(StorageKey::RandomBufferKey),
-            random_index:0,
-            last_battle: LookupMap::<AccountId, SimpleBattle>::new(StorageKey::LastBattleKey)
+            random_index: 0,
+            last_battle: LookupMap::<AccountId, SimpleBattle>::new(StorageKey::LastBattleKey),
         }
     }
 
@@ -294,9 +294,8 @@ impl Contract {
         near_kart_new: NearKart,
         cid: String,
         sig: String,
-        pub_key: String
+        pub_key: String,
     ) {
-
         self.assert_nft_owner(token_id.clone());
 
         if env::attached_deposit() < 1e23 as u128 {
@@ -337,29 +336,28 @@ impl Contract {
         let extra = nk.serialize();
         metadata.extra = Some(extra);
         lookup_map.insert(&token_id, &metadata);
-        
+
         self.update_media(token_id.clone(), cid.clone(), sig, pub_key);
 
         let kart_meta = KartMeta {
             token_id: token_id.clone(),
             name: metadata.title.unwrap(),
             media: cid.clone(),
-            reference: String::from("")
+            reference: String::from(""),
         };
 
-        let kml: KartMetaLog= KartMetaLog{
+        let kml: KartMetaLog = KartMetaLog {
             event: "configure_on_upgrade".to_string(),
-            data: kart_meta
+            data: kart_meta,
         };
         log!("EVENT_JSON:{}", serde_json::to_string(&kml).unwrap());
-
     }
 
     fn internal_mint(
         &mut self,
         token_id: TokenId,
         token_owner_id: AccountId,
-        token_metadata: Option<TokenMetadata>
+        token_metadata: Option<TokenMetadata>,
     ) -> Token {
         if self.tokens.token_metadata_by_id.is_some() && token_metadata.is_none() {
             env::panic(b"Must provide metadata");
@@ -376,7 +374,8 @@ impl Contract {
         // Metadata extension: Save metadata, keep variable around to return later.
         // Note that check above already panicked if metadata extension in use but no metadata
         // provided to call.
-        self.tokens.token_metadata_by_id
+        self.tokens
+            .token_metadata_by_id
             .as_mut()
             .and_then(|by_id| by_id.insert(&token_id, token_metadata.as_ref().unwrap()));
 
@@ -392,10 +391,18 @@ impl Contract {
         }
 
         // Approval Management extension: return empty HashMap as part of Token
-        let approved_account_ids =
-            if self.tokens.approvals_by_id.is_some() { Some(HashMap::new()) } else { None };
+        let approved_account_ids = if self.tokens.approvals_by_id.is_some() {
+            Some(HashMap::new())
+        } else {
+            None
+        };
 
-        Token { token_id, owner_id, metadata: token_metadata, approved_account_ids }
+        Token {
+            token_id,
+            owner_id,
+            metadata: token_metadata,
+            approved_account_ids,
+        }
     }
 
     #[payable]
@@ -407,9 +414,8 @@ impl Contract {
         mut near_kart_new: NearKart,
         cid: String,
         sig: String,
-        pub_key: String
+        pub_key: String,
     ) -> Token {
-
         if env::attached_deposit() < 1e23 as u128 {
             env::panic(b"error_mint_payment_too_low");
         }
@@ -436,7 +442,7 @@ impl Contract {
             updated_at: None,
             extra: Some("".to_string()),
             reference: None,
-            reference_hash: None
+            reference_hash: None,
         };
 
         let token = self.internal_mint(token_id.clone(), receiver_id.to_string(), Some(tm));
@@ -473,15 +479,14 @@ impl Contract {
             token_id: token_id.clone(),
             name: name.clone(),
             media: cid.clone(),
-            reference: String::from("")
+            reference: String::from(""),
         };
 
-        let kml: KartMetaLog= KartMetaLog{
+        let kml: KartMetaLog = KartMetaLog {
             event: "configure_on_mint".to_string(),
-            data: kart_meta
+            data: kart_meta,
         };
         log!("EVENT_JSON:{}", serde_json::to_string(&kml).unwrap());
-
 
         return token;
     }
@@ -518,20 +523,16 @@ impl Contract {
 
         if nk.front > NUM_WEAPONS_MELEE - 1 {
             env::panic(b"error_front_weapon_index_too_high");
-        }
-        else if nk.transport > NUM_TRANSPORTS - 1 {
+        } else if nk.transport > NUM_TRANSPORTS - 1 {
             env::panic(b"error_transport_index_too_high");
-        }
-        else if nk.skin > NUM_SKINS - 1 {
+        } else if nk.skin > NUM_SKINS - 1 {
             env::panic(b"error_skin_index_too_high");
-        }
-        else {
+        } else {
             if is_shield_left {
                 if weapon_or_shield_index_left > NUM_SHIELDS - 1 {
                     env::panic(b"error_shield_left_index_too_high");
                 }
-            }
-            else {
+            } else {
                 if weapon_or_shield_index_left > NUM_WEAPONS - 1 {
                     env::panic(b"error_weapon_left_index_too_high");
                 }
@@ -540,8 +541,7 @@ impl Contract {
                 if weapon_or_shield_index_right > NUM_SHIELDS - 1 {
                     env::panic(b"error_shield_right_index_too_high");
                 }
-            }
-            else {
+            } else {
                 if weapon_or_shield_index_right > NUM_WEAPONS - 1 {
                     env::panic(b"error_weapon_right_index_too_high");
                 }
@@ -550,28 +550,24 @@ impl Contract {
 
         if nk.front > max_index {
             env::panic(b"error_level_not_high_enough_to_equip_front_weapon");
-        }
-        else if weapon_or_shield_index_left > max_index {
+        } else if weapon_or_shield_index_left > max_index {
             env::panic(b"error_level_not_high_enough_to_equip_left_weapon");
-        }
-        else if weapon_or_shield_index_right > max_index {
+        } else if weapon_or_shield_index_right > max_index {
             env::panic(b"error_level_not_high_enough_to_equip_right_weapon");
-        }
-        else if nk.transport > max_index {
+        } else if nk.transport > max_index {
             env::panic(b"error_level_not_high_enough_to_use_transport");
-        }
-        else if nk.skin > max_index {
+        } else if nk.skin > max_index {
             env::panic(b"error_level_not_high_enough_to_use_skin");
         }
 
         if nk.decal1 != "" && nk.decal1 != "0" && nk.decal1 != "7" {
-            let unlocked_decals: Vec<String> = nk_prev.extra1.split(",").map(|s| s.to_string()).collect();
+            let unlocked_decals: Vec<String> =
+                nk_prev.extra1.split(",").map(|s| s.to_string()).collect();
             if !unlocked_decals.contains(&nk.decal1) {
                 println!("{:?} {}", unlocked_decals, nk.decal1);
                 env::panic(b"error_decal_front_is_not_unlocked");
             }
         }
-
     }
 
     pub fn nft_delete(&self, token_id: TokenId) {
@@ -584,10 +580,10 @@ impl Contract {
 
         let lookup_map = self.tokens.tokens_per_owner.as_ref().unwrap();
         let token_set = lookup_map.get(&account_id.to_string());
-        
+
         match token_set {
             Some(token_set) => count = token_set.len(),
-            None => count = 1
+            None => count = 1,
         }
 
         return count;
@@ -635,9 +631,14 @@ impl Contract {
     }
 
     fn assert_contract_owner() {
-        let valid = Contract::is_sub_account(env::predecessor_account_id(), env::current_account_id());
-        println!("{} {}", env::current_account_id(), env::predecessor_account_id());
-        assert_eq!( valid, true, "Caller must be relative of contract owner");
+        let valid =
+            Contract::is_sub_account(env::predecessor_account_id(), env::current_account_id());
+        println!(
+            "{} {}",
+            env::current_account_id(),
+            env::predecessor_account_id()
+        );
+        assert_eq!(valid, true, "Caller must be relative of contract owner");
     }
 
     fn update_media(&mut self, token_id: TokenId, cid: String, sig: String, pub_key: String) {
@@ -667,7 +668,7 @@ impl Contract {
         if num_tokens > 1 {
             let mut rand_index = self.get_random_u32() % num_tokens;
             let mut token_info = tokens_owner[rand_index as usize].clone();
-            opponent_id = token_info.0; 
+            opponent_id = token_info.0;
 
             if opponent_id == token_id {
                 rand_index = rand_index + 1;
@@ -678,14 +679,14 @@ impl Contract {
 
                 token_info = tokens_owner[rand_index as usize].clone();
                 opponent_id = token_info.0;
-            } 
+            }
         }
 
         return opponent_id;
     }
 
     /// Set the extra1 field of the NearKart data structure.
-    /// 
+    ///
     /// This is used to store a comma separated list of unlocked decals.
     ///
     /// # Arguments
@@ -751,7 +752,8 @@ impl Contract {
 
                 let near_kart = self.near_kart_get_config(token_id.clone());
                 let unlocks_str = near_kart.extra1;
-                let mut unlocks: Vec<String> = unlocks_str.split(",").map(|s| s.to_string()).collect();
+                let mut unlocks: Vec<String> =
+                    unlocks_str.split(",").map(|s| s.to_string()).collect();
                 let mut has_already_unlocked = false;
 
                 for unlock in unlocks.iter() {
@@ -764,14 +766,12 @@ impl Contract {
                 if !has_already_unlocked {
                     if unlocks.len() == 1 && unlocks[0] == "" {
                         unlocks[0] = prize.to_string();
-                    }
-                    else {
+                    } else {
                         unlocks.push(prize.to_string());
                     }
                     let new_unlocks_str = unlocks.join(",");
                     self.near_kart_set_extra1(token_id.clone(), &new_unlocks_str);
-                }
-                else {
+                } else {
                     prize = 0;
                 }
             }
@@ -780,19 +780,20 @@ impl Contract {
         }
 
         let result = SimpleBattle {
-            home_token_id: token_id, 
-            away_token_id: opponent_token_id, 
-            winner: winner, 
+            home_token_id: token_id,
+            away_token_id: opponent_token_id,
+            winner: winner,
             battle: battle_rand,
             prize: prize.to_string(),
-            extra: "".to_string()
+            extra: "".to_string(),
         };
 
-        self.last_battle.insert(&env::predecessor_account_id(), &result.clone());
+        self.last_battle
+            .insert(&env::predecessor_account_id(), &result.clone());
 
         let b: BattleLog = BattleLog {
             event: "game_simple_battle".to_string(),
-            data: result.clone()
+            data: result.clone(),
         };
         log!("EVENT_JSON:{}", serde_json::to_string(&b).unwrap());
 
@@ -800,7 +801,10 @@ impl Contract {
     }
 
     pub fn get_last_battle(&self, account_id: ValidAccountId) -> SimpleBattle {
-        let result = self.last_battle.get(&account_id.to_string()).expect("error_no_last_battle");
+        let result = self
+            .last_battle
+            .get(&account_id.to_string())
+            .expect("error_no_last_battle");
         return result;
     }
 
@@ -808,8 +812,8 @@ impl Contract {
         let sig_bytes = hex::decode(sig).unwrap();
         let s = Signature::from_bytes(&sig_bytes).unwrap();
         let pub_key_bytes = hex::decode(pub_key).unwrap();
-        let pub_key_obj = PublicKey::from_bytes(&pub_key_bytes).unwrap(); 
-      
+        let pub_key_obj = PublicKey::from_bytes(&pub_key_bytes).unwrap();
+
         let ok = pub_key_obj.verify(message.as_bytes(), &s).is_ok();
 
         return ok;
@@ -822,11 +826,10 @@ impl Contract {
 
         if rand_index == 0 {
             if is_new_block {
-                let random_seed : &[u8] = &env::random_seed();
+                let random_seed: &[u8] = &env::random_seed();
                 rand_bytes = env::sha256(random_seed);
                 self.prev_block_index = env::block_index();
-            }
-            else {
+            } else {
                 rand_bytes = env::sha256(&rand_bytes);
             }
 
@@ -834,21 +837,21 @@ impl Contract {
             self.random_buffer.extend(rand_bytes.clone().into_iter());
         }
 
-        let random_u32:u32 = Contract::read_u32(rand_bytes.clone(), rand_index);
-        
+        let random_u32: u32 = Contract::read_u32(rand_bytes.clone(), rand_index);
+
         rand_index = rand_index + 1;
 
         if rand_index == 8 {
             rand_index = 0;
         }
-        
+
         self.random_index = rand_index;
 
         return random_u32;
     }
 
     fn read_u32(bytes: Vec<u8>, index: u8) -> u32 {
-        let mut raw_bytes: [u8; 4] = [ 0, 0, 0, 0];
+        let mut raw_bytes: [u8; 4] = [0, 0, 0, 0];
 
         for x in 0..4 {
             let offset = (index * 4) as usize;
@@ -859,7 +862,7 @@ impl Contract {
 
         return num;
     }
-    
+
     fn get_max_weapon_index_for_level(level: u32) -> u8 {
         // let weapon_index = ((level as u8 / 5) + 1) * 5;
         let mut weapon_index = level + 2;
@@ -868,17 +871,17 @@ impl Contract {
         }
         return weapon_index as u8;
     }
-    
-    fn is_sub_account(main_account: String, sub_account: String) -> bool{
+
+    fn is_sub_account(main_account: String, sub_account: String) -> bool {
         let main_parts_vec = main_account.split(".").collect::<Vec<&str>>();
-    
+
         let mut is_sub_account = false;
-        if main_parts_vec.len() >= 2  {
+        if main_parts_vec.len() >= 2 {
             if sub_account.ends_with(&main_account) {
                 is_sub_account = true
             }
         }
-    
+
         return is_sub_account;
     }
 }
@@ -896,10 +899,10 @@ impl NonFungibleTokenMetadataProvider for Contract {
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests {
-    use near_sdk::test_utils::{accounts, VMContextBuilder, get_logs};
-    use near_sdk::{testing_env, MockedBlockchain};
-    use more_asserts::{assert_gt, assert_lt};
     use core::convert::TryFrom;
+    use more_asserts::{assert_gt, assert_lt};
+    use near_sdk::test_utils::{accounts, get_logs, VMContextBuilder};
+    use near_sdk::{testing_env, MockedBlockchain};
 
     use super::*;
 
@@ -916,8 +919,14 @@ mod tests {
         builder
     }
 
-    fn get_context_br(creator_account_id: ValidAccountId, predecessor_account_id: ValidAccountId) -> VMContextBuilder {
-        let pub_key = Vec::from(hex::decode("c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462").unwrap());
+    fn get_context_br(
+        creator_account_id: ValidAccountId,
+        predecessor_account_id: ValidAccountId,
+    ) -> VMContextBuilder {
+        let pub_key = Vec::from(
+            hex::decode("c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462")
+                .unwrap(),
+        );
         let mut builder = VMContextBuilder::new();
         builder
             .current_account_id(creator_account_id.clone())
@@ -933,18 +942,22 @@ mod tests {
         testing_env!(context
             .storage_usage(env::storage_usage())
             .attached_deposit(MINT_STORAGE_COST)
-    //        .prepaid_gas(BOATLOAD_OF_GAS)
+            //        .prepaid_gas(BOATLOAD_OF_GAS)
             .predecessor_account_id(account_id)
             .build());
     }
 
     #[test]
     fn test_get_random() {
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
+
         let mut i = 0;
         while i < 16 {
             let val = contract.get_random_u32();
@@ -974,11 +987,15 @@ mod tests {
 
     #[test]
     fn test_near_kart() {
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
+
         let token_id = "0".to_string();
         let mut starting_near_kart = NearKart::new();
         starting_near_kart.level = 1;
@@ -988,8 +1005,13 @@ mod tests {
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
         let token = contract.nft_mint(
-            token_id.clone(), br_acc, String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id.clone(),
+            br_acc,
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
 
         let logs = get_logs();
@@ -1011,11 +1033,15 @@ mod tests {
 
     #[test]
     fn test_mint() {
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
+
         let token_id = "0".to_string();
         let starting_near_kart = NearKart::new();
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
@@ -1023,30 +1049,41 @@ mod tests {
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
         let token = contract.nft_mint(
-            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id.clone(),
+            br_acc.clone(),
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
 
         assert_eq!(token.token_id, token_id);
         assert_eq!(token.owner_id, br_acc.to_string());
-        assert_eq!(token.metadata.unwrap().title, Some(String::from(DEFAULT_TITLE)));
+        assert_eq!(
+            token.metadata.unwrap().title,
+            Some(String::from(DEFAULT_TITLE))
+        );
         assert_eq!(token.approved_account_ids.unwrap(), HashMap::new());
         let nk1 = contract.near_kart_get_config(token_id.clone());
         assert_eq!(nk1.extra1, "7");
 
         let nft_count = contract.nft_count(br_acc.clone());
         assert_eq!(nft_count, 1);
-
     }
 
     #[test]
     #[should_panic(expected = "error_cannot_upgrade_while_kart_is_locked")]
     fn test_upgrade_locked_panic() {
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
+
         let token_id = "0".to_string();
         let starting_near_kart = NearKart::new();
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
@@ -1054,21 +1091,36 @@ mod tests {
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
         let token = contract.nft_mint(
-            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id.clone(),
+            br_acc.clone(),
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
 
         let nk1 = contract.near_kart_get_config(token_id.clone());
-        contract.upgrade(token_id.clone(), nk1.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
+        contract.upgrade(
+            token_id.clone(),
+            nk1.clone(),
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
+        );
     }
 
     #[test]
     fn test_upgrade() {
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
+
         let token_id = "0".to_string();
         let starting_near_kart = NearKart::new();
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
@@ -1076,8 +1128,13 @@ mod tests {
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
         let token = contract.nft_mint(
-            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id.clone(),
+            br_acc.clone(),
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
         let mut nk1 = contract.near_kart_get_config(token_id.clone());
 
@@ -1094,19 +1151,28 @@ mod tests {
         assert_eq!(nk1.level, 5);
         nk1.left = 4;
 
-        contract.upgrade(token_id.clone(), nk1.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
+        contract.upgrade(
+            token_id.clone(),
+            nk1.clone(),
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
+        );
         let nk2 = contract.near_kart_get_config(token_id.clone());
         assert_eq!(nk2.left, 4)
     }
 
     #[test]
     fn test_mint_verified_image() {
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
-        
+
         let token_id = "0".to_string();
         let starting_near_kart = NearKart::new();
 
@@ -1116,26 +1182,34 @@ mod tests {
         contract.add_signer_key(t_pub_key_1.to_string());
         println!("MINT1");
         let token = contract.nft_mint(
-            token_id.clone(), br_acc, String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id.clone(),
+            br_acc,
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
         println!("MINT2");
 
         assert_eq!(token.token_id, token_id);
-        assert_eq!(token.owner_id, "benrazor.testnet".to_string());
+        assert_eq!(token.owner_id, "muhindogalien.testnet".to_string());
         assert_eq!(token.approved_account_ids.unwrap(), HashMap::new());
         let md = contract.nft_get_token_metadata(token_id.clone());
         assert_eq!(cid.to_string(), md.media.unwrap_or("".to_string()));
     }
 
-
     #[test]
     fn test_media_update() {
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
+
         let token_id = "0".to_string();
         let starting_near_kart = NearKart::new();
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
@@ -1143,8 +1217,13 @@ mod tests {
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
         let token = contract.nft_mint(
-            token_id.clone(), br_acc, String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id.clone(),
+            br_acc,
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
 
         assert_eq!(token.token_id, token_id);
@@ -1152,10 +1231,15 @@ mod tests {
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
-        
+
         contract.add_signer_key(t_pub_key_1.to_string());
 
-        contract.update_media(token_id.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
+        contract.update_media(
+            token_id.clone(),
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
+        );
 
         let md = contract.nft_get_token_metadata(token_id.clone());
         assert_eq!(cid.to_string(), md.media.unwrap_or("".to_string()));
@@ -1163,11 +1247,15 @@ mod tests {
 
     #[test]
     fn test_get_random_opponent() {
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
+
         let token_id = "megakart".to_string();
         let starting_near_kart = NearKart::new();
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
@@ -1175,8 +1263,13 @@ mod tests {
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
         let token = contract.nft_mint(
-            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id.clone(),
+            br_acc.clone(),
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
 
         assert_eq!(token.token_id, token_id);
@@ -1184,8 +1277,13 @@ mod tests {
         let token_id_away = "fluffykart".to_string();
         let starting_near_kart = NearKart::new();
         let token_away = contract.nft_mint(
-            token_id_away.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id_away.clone(),
+            br_acc.clone(),
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
 
         assert_eq!(token_away.token_id, token_id_away);
@@ -1205,11 +1303,15 @@ mod tests {
 
     #[test]
     fn test_simple_battle() {
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
+
         let token_id = "megakart".to_string();
         let starting_near_kart = NearKart::new();
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
@@ -1217,8 +1319,13 @@ mod tests {
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
         let token = contract.nft_mint(
-            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id.clone(),
+            br_acc.clone(),
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
 
         assert_eq!(token.token_id, token_id);
@@ -1226,8 +1333,13 @@ mod tests {
         let token_id_away = "fluffykart".to_string();
         let starting_near_kart = NearKart::new();
         let token_away = contract.nft_mint(
-            token_id_away.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id_away.clone(),
+            br_acc.clone(),
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
 
         assert_eq!(token_away.token_id, token_id_away);
@@ -1275,11 +1387,15 @@ mod tests {
 
     #[test]
     fn test_random() {
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
+
         let rand_1 = contract.get_random_u32();
         let rand_2 = contract.get_random_u32();
 
@@ -1292,11 +1408,15 @@ mod tests {
         testing_env!(context.build());
         let contract = Contract::new_default_meta(accounts(0).into());
 
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
+
         let token_id = "0".to_string();
         let starting_near_kart = NearKart::new();
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
@@ -1304,8 +1424,13 @@ mod tests {
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
         let token = contract.nft_mint(
-            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id.clone(),
+            br_acc.clone(),
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
 
         testing_env!(context
@@ -1324,7 +1449,10 @@ mod tests {
         if let Some(token) = contract.nft_token(token_id.clone()) {
             assert_eq!(token.token_id, token_id);
             assert_eq!(token.owner_id, accounts(1).to_string());
-            assert_eq!(token.metadata.unwrap().extra, Some(String::from(DEFAULT_EXTRA)));
+            assert_eq!(
+                token.metadata.unwrap().extra,
+                Some(String::from(DEFAULT_EXTRA))
+            );
             assert_eq!(token.approved_account_ids.unwrap(), HashMap::new());
         } else {
             env::panic(b"token not correctly created, or not found by nft_token");
@@ -1337,11 +1465,15 @@ mod tests {
         testing_env!(context.build());
         let contract = Contract::new_default_meta(accounts(0).into());
 
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
+
         let token_id = "0".to_string();
         let starting_near_kart = NearKart::new();
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
@@ -1349,8 +1481,13 @@ mod tests {
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
         let token = contract.nft_mint(
-            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id.clone(),
+            br_acc.clone(),
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
 
         // alice approves bob
@@ -1376,11 +1513,15 @@ mod tests {
         testing_env!(context.build());
         let contract = Contract::new_default_meta(accounts(0).into());
 
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
+
         let token_id = "0".to_string();
         let starting_near_kart = NearKart::new();
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
@@ -1388,8 +1529,13 @@ mod tests {
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
         let token = contract.nft_mint(
-            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id.clone(),
+            br_acc.clone(),
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
 
         // alice approves bob
@@ -1422,11 +1568,15 @@ mod tests {
         testing_env!(context.build());
         let contract = Contract::new_default_meta(accounts(0).into());
 
-        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
-        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
-        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let br_nk_acc =
+            ValidAccountId::try_from("near_karts.muhindogalien.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("muhindogalien.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(
+            br_acc.clone(),
+            get_context_br(br_nk_acc.clone(), br_acc.clone()),
+        );
         let mut contract = Contract::new_default_meta(br_acc.clone());
-        
+
         let token_id = "0".to_string();
         let starting_near_kart = NearKart::new();
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
@@ -1434,8 +1584,13 @@ mod tests {
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
         let token = contract.nft_mint(
-            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
-            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+            token_id.clone(),
+            br_acc.clone(),
+            String::from(DEFAULT_TITLE),
+            starting_near_kart,
+            cid.to_string(),
+            t_sig_1.to_string(),
+            t_pub_key_1.to_string(),
         );
 
         // alice approves bob

@@ -4,10 +4,10 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ ben-razor/near-karts --access-token `cat .graphtoken`",
-    "create-local": "graph create --node http://localhost:8020/ ben-razor/near-karts",
-    "remove-local": "graph remove --node http://localhost:8020/ ben-razor/near-karts",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 ben-razor/near-karts"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ muhindo-galien/near-karts --access-token `cat .graphtoken`",
+    "create-local": "graph create --node http://localhost:8020/ muhindo-galien/near-karts",
+    "remove-local": "graph remove --node http://localhost:8020/ muhindo-galien/near-karts",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 muhindo-galien/near-karts"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.26.0",
